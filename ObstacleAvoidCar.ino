@@ -24,30 +24,52 @@ void setup() {
   pinMode(RightMotorBackward, OUTPUT);
 
   servo.attach(7);
-  servo.write(90);
+  servo.write(0);
 }
 
 //--------------------------------------------------- Scannig funtion
-int scanAhead() {
+char scanAhead() {
+  int left;
+  int right;
+
   Serial.print("Map: ");
-  for (int pos = 150; pos >= 30; pos -= 1) {
+  for (int pos = 180; pos >= 0; pos -= 30) {
 
     servo.write(pos);
-    delay(18);
+    delay(250);
 
-    if (pos % 30 == 0) {
+    if (pos != 90) {
       distMap[pos / 30 - 1] = sonar.read();
       Serial.print(distMap[pos / 30 - 1]);
       Serial.print(" ");
     }
   }
+
   Serial.println("");
   servo.write(90);
-  return distMap;
+
+  for (int i = 0; i < 3; i++) {
+    if (distMap[i] > 20) {
+      left++;
+    }
+  }
+  for (int i = 3; i < 6; i++) {
+    if (distMap[i] > 20) {
+      right++;
+    }
+  }
+
+  if (right == left) {
+    return "L";
+  } else if (right > left) {
+    return "R";
+  } else {
+    return "L";
+  }
 }
 
 //--------------------------------------------------- Moving functions
-void stop(){
+void stop() {
   digitalWrite(LeftMotorForward, 0);
   digitalWrite(RightMotorForward, 0);
 
@@ -57,17 +79,15 @@ void stop(){
   Serial.println("Stopped");
 }
 
-void goForward(){
+void goForward() {
   digitalWrite(LeftMotorForward, 1);
   digitalWrite(RightMotorForward, 1);
 
   digitalWrite(LeftMotorBackward, 0);
   digitalWrite(RightMotorBackward, 0);
-
-  Serial.println("Go forward");
 }
 
-void goBackward(){
+void goBackward() {
   digitalWrite(LeftMotorForward, 0);
   digitalWrite(RightMotorForward, 0);
 
@@ -77,7 +97,7 @@ void goBackward(){
   Serial.println("Go backward");
 }
 
-void turnLeft(){
+void turnLeft() {
   digitalWrite(LeftMotorForward, 0);
   digitalWrite(LeftMotorBackward, 1);
 
@@ -85,13 +105,13 @@ void turnLeft(){
   digitalWrite(RightMotorBackward, 0);
 
   Serial.println("Turned left");
-  
+
   delay(400);
   stop();
 
 }
 
-void turnRight(){
+void turnRight() {
   digitalWrite(LeftMotorForward, 1);
   digitalWrite(LeftMotorBackward, 0);
 
@@ -107,28 +127,28 @@ void turnRight(){
 
 
 void loop() {
-//---------------------------------------------- Debug functionality
+  //---------------------------------------------- Debug functionality
   if (Serial.available()) {
     int data = Serial.parseInt();
 
     switch (data) {
       case 1: scanAhead();
         break;
-      
+
       case 2: stop();
         break;
-      
+
       case 8: goForward();
-        break;  
-      
+        break;
+
       case 4: turnLeft();
         break;
-      
+
       case 5: goBackward();
-        break;  
+        break;
 
       case 6: turnRight();
-        break;  
+        break;
 
       default:
         break;
@@ -136,15 +156,36 @@ void loop() {
   }
 
   //----------------------------------------------- Main cycle
-  
+
   distance = sonar.read();
 
-  if (distance < 20) {
+  if (distance <= 20) {
+    //    char descision;
+
     stop();
+    delay(20);
+
+    goBackward();
+    delay(50);
+    stop();
+
+    //    descision = scanAhead();
+
+    if (scanAhead() == "R") {
+      turnRight();
+    } else {
+      turnLeft();
+    }
+    delay(50);
+    stop();
+    delay(20);
+    goForward();
+
+
   }
   else {
     goForward();
-  } 
+  }
 }
 
 

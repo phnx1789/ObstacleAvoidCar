@@ -29,8 +29,7 @@ void setup() {
 
 //--------------------------------------------------- Scannig funtion
 int scanAhead() {
-  Serial.print("Map: ");
-  for (int pos = 150; pos >= 30; pos -= 1) {
+  for (int pos = 180; pos >= 30; pos -= 1) {
 
     servo.write(pos);
     delay(18);
@@ -141,6 +140,12 @@ void loop() {
 
   if (distance < 20) {
     stop();
+    delay(20);
+    goBackward();
+    delay(400);
+    stop();
+    scanAhead();
+
   }
   else {
     goForward();
